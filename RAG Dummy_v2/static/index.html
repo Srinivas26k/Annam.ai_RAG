@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Assistant</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            margin: 50px; 
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin: auto;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            text-align: left;
+            font-size: 16px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        h2 {
+            color: #333;
+        }
+        .response, .context, .sources {
+            margin-top: 10px;
+            padding: 10px;
+            border-left: 4px solid #007BFF;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .context {
+            border-left-color: #ff9800;
+        }
+        .sources {
+            border-left-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Ask Your Question</h1>
+        <input type="text" id="queryInput" placeholder="Type your query...">
+        <button onclick="sendQuery()">Submit</button>
+
+        <div id="output">
+            <h2>Query Context</h2>
+            <div id="context" class="context"></div>
+            
+            <h2>Response</h2>
+            <div id="answer" class="response"></div>
+            
+            <h2>Sources</h2>
+            <div id="sources" class="sources"></div>
+        </div>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            const query = document.getElementById("queryInput").value;
+            const outputDiv = document.getElementById("output");
+            const answerDiv = document.getElementById("answer");
+            const contextDiv = document.getElementById("context");
+            const sourcesDiv = document.getElementById("sources");
+
+            if (!query.trim()) {
+                alert("Please enter a query!");
+                return;
+            }
+
+            outputDiv.style.display = "block";
+            answerDiv.innerHTML = "Processing...";
+            contextDiv.innerHTML = "";
+            sourcesDiv.innerHTML = "";
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/query", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: query }),
+                });
+
+                const data = await response.json();
+                
+                contextDiv.innerHTML = `<p><b>Context:</b> ${data.context}</p>`;
+                answerDiv.innerHTML = `<p><b>Answer:</b> ${data.answer}</p>`;
+                
+                if (data.sources.length > 0) {
+                    sourcesDiv.innerHTML = `<p><b>Sources:</b> ${data.sources.join(", ")}</p>`;
+                } else {
+                    sourcesDiv.innerHTML = "<p>No sources available.</p>";
+                }
+
+            } catch (error) {
+                answerDiv.innerHTML = "<p style='color: red;'>Error fetching response.</p>";
+            }
+        }
+    </script>
+
+</body>
+</html>
